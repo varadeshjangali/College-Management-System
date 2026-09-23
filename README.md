@@ -1,5 +1,7 @@
 # College Management System
 
+Hosted link: https://github.com/varadeshjangali/College-Management-System
+
 A Django and React college portal for students and teachers. It uses SQLite for local development.
 
 ## Requirements
