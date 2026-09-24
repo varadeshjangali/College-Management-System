@@ -617,6 +617,53 @@ nav {
   min-height: 290px;
 }
 
+.student-page-panel {
+  margin-top: 20px;
+}
+
+.student-page-panel h3 {
+  font: 600 22px 'Space Grotesk';
+  margin: 0 0 22px;
+}
+
+.student-table {
+  border-top: 1px solid var(--line);
+}
+
+.student-table-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 24px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.student-table-row > div {
+  display: grid;
+  gap: 4px;
+}
+
+.student-table-row strong {
+  color: var(--navy);
+}
+
+.student-table-row small {
+  color: var(--muted);
+}
+
+.attendance-present {
+  color: #16615d;
+  font-weight: 700;
+}
+
+.attendance-absent {
+  color: #a33a3a;
+  font-weight: 700;
+}
+
 .trend {
   font-size: 12px;
   color: var(--teal);

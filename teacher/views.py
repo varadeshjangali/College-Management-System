@@ -4,6 +4,7 @@ from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
+from django.db.models import Prefetch
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from student.models import Announcement, Assignment, AttendanceRecord, Enrollment, Grade, StudentProfile, Subject
@@ -27,11 +28,14 @@ def dashboard(request):
 
     teacher = request.user.teacher_profile
     all_students = StudentProfile.objects.select_related('user').order_by('student_id')
-    subjects = teacher.subjects.order_by('id').prefetch_related('enrollments__student__user')
+    enrollment_queryset = Enrollment.objects.select_related('student__user').order_by('id')
+    subjects = teacher.subjects.order_by('id').prefetch_related(Prefetch('enrollments', queryset=enrollment_queryset, to_attr='ordered_enrollments'))
     subject_data = []
     total_students = 0
     for subject in subjects:
-        student_count = subject.enrollments.count()
+        enrollments = subject.ordered_enrollments
+        enrolled_student_ids = {enrollment.student_id for enrollment in enrollments}
+        student_count = len(enrollments)
         total_students += student_count
         subject_data.append({
             'id': subject.id,
@@ -40,12 +44,12 @@ def dashboard(request):
             'students': student_count,
             'student_list': [
                 {'id': enrollment.student.id, 'student_id': enrollment.student.student_id, 'name': enrollment.student.user.get_full_name() or enrollment.student.user.username}
-                for enrollment in subject.enrollments.order_by('id')
+                for enrollment in enrollments
             ],
             'available_students': [
                 {'id': student.id, 'student_id': student.student_id, 'name': student.user.get_full_name() or student.user.username}
                 for student in all_students
-                if not subject.enrollments.filter(student=student).exists()
+                if student.id not in enrolled_student_ids
             ],
         })
 

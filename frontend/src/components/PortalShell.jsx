@@ -3,6 +3,7 @@ import {
   BookOpen,
   CalendarDays,
   ClipboardCheck,
+  ClipboardList,
   GraduationCap,
   LayoutDashboard,
   LogOut,
@@ -15,6 +16,7 @@ const studentNavigation = [
   ['My subjects', BookOpen],
   ['Attendance', ClipboardCheck],
   ['Timetable', CalendarDays],
+  ['Assignments', ClipboardList],
   ['Announcements', Bell]
 ]
 

@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.db.models import Avg, Count, Q
 
-from .models import Announcement, Assignment, AttendanceRecord, Enrollment, StudentProfile
+from .models import Announcement, Assignment, AttendanceRecord, Enrollment, StudentProfile, TimetableEntry
 
 
 def _user_payload(user):
@@ -50,7 +50,7 @@ def student_signup(request):
 	except json.JSONDecodeError:
 		return JsonResponse({'detail': 'Request body must be valid JSON.'}, status=400)
 
-	required_fields = ['first_name', 'last_name', 'username', 'email', 'student_id', 'program', 'semester', 'password', 'password_confirm']
+	required_fields = ['first_name', 'last_name', 'username', 'email', 'student_id', 'branch', 'semester', 'password', 'password_confirm']
 	missing_fields = [field for field in required_fields if not str(registration.get(field, '')).strip()]
 	if missing_fields:
 		return JsonResponse({'detail': f'Missing required fields: {", ".join(missing_fields)}.'}, status=400)
@@ -76,7 +76,7 @@ def student_signup(request):
 	try:
 		with transaction.atomic():
 			user = User.objects.create_user(username=registration['username'], email=registration['email'], password=registration['password'], first_name=registration['first_name'], last_name=registration['last_name'])
-			StudentProfile.objects.create(user=user, student_id=registration['student_id'], program=registration['program'], semester=semester)
+			StudentProfile.objects.create(user=user, student_id=registration['student_id'], branch=registration['branch'], semester=semester)
 	except IntegrityError:
 		return JsonResponse({'detail': 'An account with these details already exists.'}, status=409)
 
@@ -104,6 +104,8 @@ def dashboard(request):
 	student = request.user.student_profile
 	enrollments = Enrollment.objects.filter(student=student).select_related('subject').order_by('id')
 	attendance = AttendanceRecord.objects.filter(enrollment__in=enrollments)
+	attendance_records = attendance.select_related('enrollment__subject').order_by('-date', 'id')
+	timetable = TimetableEntry.objects.filter(subject__in=enrollments.values('subject_id')).select_related('subject').order_by('weekday', 'start_time', 'id')
 	attendance_total = attendance.count()
 	present_total = attendance.filter(present=True).count()
 	grades = list(enrollments.values('subject__code', 'subject__name').annotate(average=Avg('grades__score')))
@@ -115,14 +117,16 @@ def dashboard(request):
 			'id': student.id,
 			'name': student.user.get_full_name() or student.user.username,
 			'student_id': student.student_id,
-			'program': student.program,
+			'branch': student.branch,
 			'semester': student.semester,
 		},
 		'summary': {'subjects': enrollments.count(), 'attendance_rate': round(present_total / attendance_total * 100, 1) if attendance_total else 0, 'pending_assignments': assignments.count()},
-		'subjects': [{'code': item.subject.code, 'name': item.subject.name, 'credits': item.subject.credits} for item in enrollments],
+		'subjects': [{'id': item.subject.id, 'code': item.subject.code, 'name': item.subject.name, 'credits': item.subject.credits, 'academic_year': item.academic_year} for item in enrollments],
+		'attendance': [{'id': item.id, 'subject': item.enrollment.subject.code, 'date': item.date.isoformat(), 'present': item.present} for item in attendance_records],
+		'timetable': [{'id': item.id, 'weekday': item.get_weekday_display(), 'start_time': item.start_time.strftime('%H:%M'), 'end_time': item.end_time.strftime('%H:%M'), 'room': item.room, 'subject': item.subject.code, 'subject_name': item.subject.name} for item in timetable],
 		'performance': grades,
-		'assignments': [{'id': item.id, 'title': item.title, 'subject': item.subject.code, 'due_date': item.due_date} for item in assignments],
-		'announcements': [{'id': item.id, 'title': item.title, 'message': item.message, 'published_at': item.published_at} for item in announcements],
+		'assignments': [{'id': item.id, 'title': item.title, 'description': item.description, 'subject': item.subject.code, 'due_date': item.due_date} for item in assignments],
+		'announcements': [{'id': item.id, 'title': item.title, 'message': item.message, 'subject': item.subject.code if item.subject else 'All students', 'published_at': item.published_at} for item in announcements],
 	})
 
 # Create your views here.

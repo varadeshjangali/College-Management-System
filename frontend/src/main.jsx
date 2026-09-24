@@ -116,7 +116,7 @@ function App() {
       teacher
     />
   ) : (
-    <StudentDashboard data={data} />
+    <StudentDashboard data={data} active={active} />
   )
 
   return (

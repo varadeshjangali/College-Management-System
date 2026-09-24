@@ -6,7 +6,7 @@ class StudentProfile(models.Model):
 	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='student_profile')
 	student_id = models.CharField(max_length=30, unique=True)
 	phone = models.CharField(max_length=20, blank=True)
-	program = models.CharField(max_length=120)
+	branch = models.CharField(max_length=120)
 	semester = models.PositiveSmallIntegerField(default=1)
 	avatar_url = models.URLField(blank=True)
 

@@ -62,12 +62,12 @@ export function DashboardOverview({ data, teacher }) {
 
         <div className="profile-details">
           <span>
-            <small>{teacher ? 'Teacher ID' : 'Student ID'}</small>
-            <strong>{data.profile?.[teacher ? 'teacher_id' : 'student_id']}</strong>
+            <small>{teacher ? 'Employee ID' : 'Student ID'}</small>
+            <strong>{data.profile?.[teacher ? 'employee_id' : 'student_id']}</strong>
           </span>
           <span>
-            <small>{teacher ? 'Department' : 'Program'}</small>
-            <strong>{teacher ? data.profile?.department : data.profile?.program}</strong>
+            <small>{teacher ? 'Department' : 'Branch'}</small>
+            <strong>{teacher ? data.profile?.department : data.profile?.branch}</strong>
           </span>
         </div>
       </section>
