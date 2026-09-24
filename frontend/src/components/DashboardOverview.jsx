@@ -62,8 +62,8 @@ export function DashboardOverview({ data, teacher }) {
 
         <div className="profile-details">
           <span>
-            <small>{teacher ? 'Employee ID' : 'Student ID'}</small>
-            <strong>{data.profile?.[teacher ? 'employee_id' : 'student_id']}</strong>
+            <small>{teacher ? 'Teacher ID' : 'Student ID'}</small>
+            <strong>{data.profile?.[teacher ? 'teacher_id' : 'student_id']}</strong>
           </span>
           <span>
             <small>{teacher ? 'Department' : 'Program'}</small>

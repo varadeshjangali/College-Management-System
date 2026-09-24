@@ -27,7 +27,7 @@ def dashboard(request):
 
     teacher = request.user.teacher_profile
     all_students = StudentProfile.objects.select_related('user').order_by('student_id')
-    subjects = teacher.subjects.prefetch_related('enrollments__student__user')
+    subjects = teacher.subjects.order_by('id').prefetch_related('enrollments__student__user')
     subject_data = []
     total_students = 0
     for subject in subjects:
@@ -40,7 +40,7 @@ def dashboard(request):
             'students': student_count,
             'student_list': [
                 {'id': enrollment.student.id, 'student_id': enrollment.student.student_id, 'name': enrollment.student.user.get_full_name() or enrollment.student.user.username}
-                for enrollment in subject.enrollments.all()
+                for enrollment in subject.enrollments.order_by('id')
             ],
             'available_students': [
                 {'id': student.id, 'student_id': student.student_id, 'name': student.user.get_full_name() or student.user.username}
@@ -56,7 +56,9 @@ def dashboard(request):
     total = attendance.count()
     return JsonResponse({
         'profile': {
+            'id': teacher.id,
             'name': teacher.user.get_full_name() or teacher.user.username,
+            'teacher_id': teacher.id,
             'employee_id': teacher.employee_id,
             'department': teacher.department,
         },

@@ -102,7 +102,7 @@ def dashboard(request):
 		return JsonResponse({'detail': 'Student access required.'}, status=403)
 
 	student = request.user.student_profile
-	enrollments = Enrollment.objects.filter(student=student).select_related('subject')
+	enrollments = Enrollment.objects.filter(student=student).select_related('subject').order_by('id')
 	attendance = AttendanceRecord.objects.filter(enrollment__in=enrollments)
 	attendance_total = attendance.count()
 	present_total = attendance.filter(present=True).count()
@@ -112,6 +112,7 @@ def dashboard(request):
 
 	return JsonResponse({
 		'profile': {
+			'id': student.id,
 			'name': student.user.get_full_name() or student.user.username,
 			'student_id': student.student_id,
 			'program': student.program,
